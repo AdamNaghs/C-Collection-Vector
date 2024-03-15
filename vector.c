@@ -28,6 +28,7 @@ size_t default_growth_rate(Vector *v)
 Vector *vector_new(size_t capacity, size_t elem_size, void_cmp_func cmp, vector_growth_rate_func grow)
 {
     Vector *p = (Vector *)malloc(sizeof(Vector));
+    assert(p);
     p->len = 0;
     p->capacity = 0;
     p->elem_size = elem_size;
@@ -68,7 +69,7 @@ void vector_resize(Vector *v, size_t new_cap)
     if (!new_cap)
         new_cap++;
     byte *new_data = (byte *)realloc(v->data, new_cap * v->elem_size * sizeof(byte));
-    // assert(new_data != NULL && "vector_resize: Failed to resize vector array.");
+    assert(new_data != NULL && "vector_resize: Failed to resize vector array.");
 
     // Initialize the newly allocated memory
     size_t old_cap_start = v->capacity * v->elem_size * sizeof(byte);
@@ -84,9 +85,11 @@ void vector_resize(Vector *v, size_t new_cap)
 void vector_push_back(Vector *v, void *data)
 {
     VALIDATE_VECTOR(v);
+    if (!data) return;
     if (v->len >= v->capacity)
         vector_resize(v, v->grow(v));
-    memcpy(vector_at(v, v->len++), data, v->elem_size);
+    memcpy(vector_at(v, v->len), data, v->elem_size * sizeof(byte));
+    v->len++;
 }
 
 void vector_sort(Vector *v)
@@ -195,9 +198,10 @@ Vector *vector_copy(Vector *v)
     ret->elem_size = v->elem_size;
     ret->len = 0;
     ret->data = NULL;
-    v->capacity = 0;
+    ret->capacity = 0;
     vector_resize(ret, v->capacity);
-    memcpy(ret->data, v->data, ret->capacity);
+    assert(ret->data && ret->capacity == v->capacity);
+    memcpy(ret->data, v->data, v->capacity);
     return ret;
 }
 
