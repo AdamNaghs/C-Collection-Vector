@@ -108,7 +108,10 @@ void vector_remove(Vector *v, size_t index)
     VALIDATE_VECTOR(v);
     if (index >= v->len)
         return;
-
+    if (v->fe_idx != (size_t)-1)
+    {
+        v->fe_idx--;
+    }
     if (index < v->len - 1)
     {
         memmove(vector_at(v, index), vector_at(v, index + 1), (v->len - index - 1) * v->elem_size * sizeof(byte));
@@ -183,6 +186,10 @@ void vector_remove_fast(Vector *v, size_t index)
     VALIDATE_VECTOR(v);
     if (index >= v->len)
         return;
+    if (v->fe_idx != (size_t)-1)
+    {
+        v->fe_idx--;
+    }
     memcpy(vector_at(v, index), vector_at(v, v->len - 1), v->elem_size * sizeof(byte));
     v->len--;
 }
@@ -248,4 +255,9 @@ void *vector_pop_front(Vector *v)
     void *ret = vector_at(v, 0);
     vector_remove(v, 0);
     return ret;
+}
+
+size_t vector_size(Vector* v)
+{
+    return v->len;
 }
