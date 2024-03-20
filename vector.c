@@ -3,12 +3,16 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#ifndef DISABLE_ASSERT
 #define ASSERT(cond)                                                                                \
     if (!(cond))                                                                                    \
     {                                                                                               \
         printf("Assertion Failed:\n\tLine: %d\n\tFile: %s\n\t\"%s\"\n", __LINE__, __FILE__, #cond); \
         exit(1);                                                                                    \
     }
+#else
+#define ASSERT(cond) cond
+#endif
 
 #define EXIT_IF_NULL(value)                                                          \
     if (value == NULL)                                                               \
@@ -26,7 +30,7 @@
 
 #define VALIDATE_VECTOR(vec) EXIT_IF_NULL(vec)
 
-size_t default_growth_rate(Vec *v)
+static size_t default_growth_rate(Vec *v)
 {
     return v->capacity * 2;
 }
