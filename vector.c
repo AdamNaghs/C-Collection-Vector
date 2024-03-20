@@ -1,13 +1,19 @@
 #include "vector.h"
-#include <assert.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
 
+#define ASSERT(cond)                                                                                \
+    if (!(cond))                                                                                    \
+    {                                                                                               \
+        printf("Assertion Failed:\n\tLine: %d\n\tFile: %s\n\t\"%s\"\n", __LINE__, __FILE__, #cond); \
+        exit(1);                                                                                    \
+    }
+
 #define EXIT_IF_NULL(value)                                                          \
     if (value == NULL)                                                               \
     {                                                                                \
-        fprintf(stderr, "Given null on line %d in file \"%s\"", __LINE__, __FILE__); \
+        fprintf(stderr, "Given null vector on line %d in file \"%s\"\n", __LINE__, __FILE__); \
         exit(1);                                                                     \
     }
 
@@ -20,48 +26,48 @@
 
 #define VALIDATE_VECTOR(vec) EXIT_IF_NULL(vec)
 
-size_t default_growth_rate(Vector *v)
+size_t default_growth_rate(Vec *v)
 {
     return v->capacity * 2;
 }
 
-Vector *vector_new(size_t capacity, size_t elem_size, void_cmp_func cmp, vector_growth_rate_func grow)
+Vec *vec_new(size_t capacity, size_t elem_size, void_cmp_func cmp, vec_growth_rate_func grow)
 {
-    Vector *p = (Vector *)malloc(sizeof(Vector));
-    assert(p);
+    Vec *p = (Vec *)malloc(sizeof(Vec));
+    ASSERT(p);
     p->len = 0;
     p->capacity = 0;
     p->elem_size = elem_size;
     p->data = NULL;
     p->cmp = cmp;
     p->grow = grow ? grow : default_growth_rate;
-    vector_resize(p, capacity);
+    vec_resize(p, capacity);
     return p;
 }
 
-void vector_free(Vector *v)
+void vec_free(Vec *v)
 {
     VALIDATE_VECTOR(v);
     free(v->data);
     free(v);
 }
 
-void *vector_at(Vector *v, size_t index)
+void *vec_at(Vec *v, size_t index)
 {
     return (void *)(&v->data[index * v->elem_size]);
 }
 
-void *vector_at_s(Vector *v, size_t index)
+void *vec_at_s(Vec *v, size_t index)
 {
     VALIDATE_VECTOR(v);
     if (index >= v->len)
     {
         return NULL;
     }
-    return vector_at(v, index);
+    return vec_at(v, index);
 }
 
-void vector_resize(Vector *v, size_t new_cap)
+void vec_resize(Vec *v, size_t new_cap)
 {
     VALIDATE_VECTOR(v);
     if (new_cap == v->capacity)
@@ -69,7 +75,7 @@ void vector_resize(Vector *v, size_t new_cap)
     if (!new_cap)
         new_cap++;
     byte *new_data = (byte *)realloc(v->data, new_cap * v->elem_size * sizeof(byte));
-    assert(new_data != NULL && "vector_resize: Failed to resize vector array.");
+    ASSERT(new_data != NULL && "vec_resize: Failed to resize vec array.");
 
     // Initialize the newly allocated memory
     size_t old_cap_start = v->capacity * v->elem_size * sizeof(byte);
@@ -82,67 +88,51 @@ void vector_resize(Vector *v, size_t new_cap)
     v->data = new_data;
 }
 
-void vector_push_back(Vector *v, void *data)
+void vec_push_back(Vec *v, void *data)
 {
     VALIDATE_VECTOR(v);
-    if (!data) return;
+    if (!data)
+        return;
     if (v->len >= v->capacity)
-        vector_resize(v, v->grow(v));
-    memcpy(vector_at(v, v->len), data, v->elem_size * sizeof(byte));
+        vec_resize(v, v->grow(v));
+    memcpy(vec_at(v, v->len), data, v->elem_size * sizeof(byte));
     v->len++;
 }
 
-void vector_sort(Vector *v)
+void vec_sort(Vec *v)
 {
     VALIDATE_VECTOR(v);
     if (!v->cmp)
     {
-        perror("vector_sort: Compare function is undefined.");
+        perror("vec_sort: Compare function is undefined.");
         return;
     }
     qsort(v->data, v->len, v->elem_size, v->cmp);
 }
 
-void vector_remove(Vector *v, size_t index)
-{
-    VALIDATE_VECTOR(v);
-    if (index >= v->len)
-        return;
-    if (v->fe_idx != (size_t)-1)
-    {
-        v->fe_idx--;
-    }
-    if (index < v->len - 1)
-    {
-        memmove(vector_at(v, index), vector_at(v, index + 1), (v->len - index - 1) * v->elem_size * sizeof(byte));
-    }
-
-    v->len--;
-}
-
-void vector_insert(Vector *v, size_t index, void *data)
+void vec_insert(Vec *v, size_t index, void *data)
 {
     VALIDATE_VECTOR(v);
     if (index > v->len)
         return;
 
     if (v->len >= v->capacity)
-        vector_resize(v, v->grow(v));
+        vec_resize(v, v->grow(v));
 
-    memmove(vector_at(v, index + 1), vector_at(v, index), (v->len - index) * v->elem_size * sizeof(byte));
-    memcpy(vector_at(v, index), data, v->elem_size);
+    memmove(vec_at(v, index + 1), vec_at(v, index), (v->len - index) * v->elem_size * sizeof(byte));
+    memcpy(vec_at(v, index), data, v->elem_size);
 
     v->len++;
 }
 
-void vector_clear(Vector *v)
+void vec_clear(Vec *v)
 {
     VALIDATE_VECTOR(v);
     memset(v->data, 0, v->capacity * v->elem_size * sizeof(byte));
     v->len = 0;
 }
 
-void vector_clamp(Vector *v)
+void vec_clamp(Vec *v)
 {
     VALIDATE_VECTOR(v);
     byte *tmp;
@@ -150,69 +140,90 @@ void vector_clamp(Vector *v)
         tmp = (byte *)realloc(v->data, v->elem_size * sizeof(byte));
     else
         tmp = (byte *)realloc(v->data, v->len * v->elem_size * sizeof(byte));
-    assert(tmp);
+    ASSERT(tmp);
     v->data = tmp;
     v->capacity = v->len;
 }
 
-void *vector_pop_back(Vector *v)
+void *vec_pop_back(Vec *v)
 {
     VALIDATE_VECTOR(v);
     if (v->len < 1)
         return NULL;
-    return vector_at(v, --v->len);
+    return vec_at(v, --v->len);
 }
 
-void *vector_find(Vector *v, void *_find)
+void *vec_find(Vec *v, void *_find)
 {
     VALIDATE_VECTOR(v);
     if (!v->cmp)
     {
-        perror("vector_find: Compare function is undefined.");
+        perror("vec_find: Compare function is undefined.");
         return NULL;
     }
     for (size_t i = 0; i < v->len; i++)
     {
-        if (v->cmp(vector_at(v, i), _find) == 0)
+        if (v->cmp(vec_at(v, i), _find) == 0)
         {
-            return vector_at(v, i);
+            return vec_at(v, i);
         }
     }
     return NULL;
 }
 
-void vector_remove_fast(Vector *v, size_t index)
+void vec_remove(Vec *v, size_t index)
 {
     VALIDATE_VECTOR(v);
     if (index >= v->len)
         return;
-    if (v->fe_idx != (size_t)-1)
+    if (v->fe_idx != INVALID_FE_IDX)
     {
         v->fe_idx--;
     }
-    memcpy(vector_at(v, index), vector_at(v, v->len - 1), v->elem_size * sizeof(byte));
+    if (index < v->len - 1)
+    {
+        memmove(vec_at(v, index), vec_at(v, index + 1), (v->len - index - 1) * v->elem_size * sizeof(byte));
+    }
+
+    v->len--;
+}
+
+void vec_remove_fast(Vec *v, size_t index)
+{
+    VALIDATE_VECTOR(v);
+    if (index >= v->len)
+        return;
+    if (v->fe_idx != INVALID_FE_IDX) // allows V_FOR_EACH to remove entries
+    {
+        v->fe_idx--;
+    }
+    memcpy(vec_at(v, index), vec_at(v, v->len - 1), v->elem_size * sizeof(byte));
     v->len--;
 }
 
 /* Returns heap allocated deep copy */
-Vector *vector_copy(Vector *v)
+Vec *vec_copy(Vec *v)
 {
     VALIDATE_VECTOR(v);
-    Vector *ret = (Vector *)malloc(sizeof(Vector));
-    assert(ret);
+    Vec *ret = (Vec *)malloc(sizeof(Vec));
+    ASSERT(ret);
     ret->grow = v->grow;
     ret->cmp = v->cmp;
     ret->elem_size = v->elem_size;
     ret->len = 0;
     ret->data = NULL;
     ret->capacity = 0;
-    vector_resize(ret, v->capacity);
-    assert(ret->data && ret->capacity == v->capacity);
+    vec_resize(ret, v->capacity);
+    if (v->capacity == 0)
+    {
+        return ret;
+    }
+    ASSERT(ret->data && ret->capacity == v->capacity);
     memcpy(ret->data, v->data, v->capacity);
     return ret;
 }
 
-void vector_reverse(Vector *v)
+void vec_reverse(Vec *v)
 {
     VALIDATE_VECTOR(v);
     byte *start = v->data;
@@ -226,7 +237,7 @@ void vector_reverse(Vector *v)
     }
 }
 
-void vector_swap(Vector *v, size_t idx0, size_t idx1)
+void vec_swap(Vec *v, size_t idx0, size_t idx1)
 {
     VALIDATE_VECTOR(v);
     if (idx0 >= v->len)
@@ -235,8 +246,8 @@ void vector_swap(Vector *v, size_t idx0, size_t idx1)
         return;
 
     size_t write_size = v->elem_size;
-    byte *idx0_entry = vector_at(v, idx0);
-    byte *idx1_entry = vector_at(v, idx1);
+    byte *idx0_entry = vec_at(v, idx0);
+    byte *idx1_entry = vec_at(v, idx1);
     while (write_size)
     {
         size_t idx = write_size - 1;
@@ -247,17 +258,17 @@ void vector_swap(Vector *v, size_t idx0, size_t idx1)
     }
 }
 
-void *vector_pop_front(Vector *v)
+void *vec_pop_front(Vec *v)
 {
     VALIDATE_VECTOR(v);
     if (v->len < 1)
         return NULL;
-    void *ret = vector_at(v, 0);
-    vector_remove(v, 0);
+    void *ret = vec_at(v, 0);
+    vec_remove(v, 0);
     return ret;
 }
 
-size_t vector_size(Vector* v)
+size_t vec_size(Vec *v)
 {
     return v->len;
 }
