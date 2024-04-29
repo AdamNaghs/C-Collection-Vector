@@ -57,7 +57,7 @@ struct Vec
     (vec)->fe_idx = 0;                                  \
     for (type *var_name = vec_at_s(vec, (vec)->fe_idx); \
          var_name != NULL;                              \
-         var_name = ((++(vec)->fe_idx) && (var_name = vec_at_s(vec, (vec)->fe_idx))) ? var_name : ((vec)->fe_idx = INVALID_FE_IDX, NULL))
+         var_name = vec_at_s(vec,++((vec)->fe_idx)))
 
 Vec *vec_new(size_t capacity, size_t elem_size, void_cmp_func cmp, vec_growth_rate_func grow, void (*free_entry)(const void*));
 void vec_free(Vec *v);
