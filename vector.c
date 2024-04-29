@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#ifdef USE_ASSERTS
+#ifndef DISABLE_ASSERT
 #define ASSERT(cond)                                                                                \
     if (!(cond))                                                                                    \
     {                                                                                               \

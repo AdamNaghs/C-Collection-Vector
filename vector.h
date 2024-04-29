@@ -15,8 +15,9 @@
         and rewrite it to return errors.
 *       Don't just change these files because I link directly to to these files in some projects.
 */
-/* undef this if you don't want assertions */
-#define USE_ASSERTS
+/*
+    Define DISABLE_ASSERT to not use asserts.
+*/
 
 #define VECTOR_DEFAULT_CAP 10
 
