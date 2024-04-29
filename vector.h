@@ -9,7 +9,14 @@
         When adding a new member to the vector you must provide a valid memory address to copy the data from.
         The vector will then contain a copy of the data at that index.
         If the vector contains pointers to memory, you need to be careful to free memory before you remove the entry from the array.
+
+    TODO:
+        Add another header and c file, copy and paste this vector into there
+        and rewrite it to return errors.
+*       Don't just change these files because I link directly to to these files in some projects.
 */
+/* undef this if you don't want assertions */
+#define USE_ASSERTS
 
 #define VECTOR_DEFAULT_CAP 10
 
