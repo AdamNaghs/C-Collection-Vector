@@ -3,6 +3,14 @@
 
 #include <stdint.h>
 
+/*
+    INFO:
+        The Vector is an array of bytes. 
+        When adding a new member to the vector you must provide a valid memory address to copy the data from.
+        The vector will then contain a copy of the data at that index.
+        If the vector contains pointers to memory, you need to be careful to free memory before you remove the entry from the array.
+*/
+
 #define VECTOR_DEFAULT_CAP 10
 
 #define INVALID_FE_IDX ((size_t)-1)
@@ -25,10 +33,11 @@ struct Vec
     size_t elem_size; // elem_size * capacity is the current memory allocation in bytes
     void_cmp_func cmp;
     vec_growth_rate_func grow;
+    void (*free_entry)(const void*);
     size_t fe_idx; // use by VEC_FOR_EACH to ensure index after altering the vector
 };
 
-#define VEC(type) (vec_new(VECTOR_DEFAULT_CAP, sizeof(type), NULL, NULL))
+#define VEC(type) (vec_new(VECTOR_DEFAULT_CAP, sizeof(type), NULL, NULL, NULL))
 #define V_ADD(v, data) (vec_push_back(v, data))
 #define V_INS(v, idx, data) (vec_insert(v, idx, data))
 #define V_RM(v, idx) (vec_remove(v, idx))
@@ -48,9 +57,9 @@ struct Vec
     (vec)->fe_idx = 0;                                  \
     for (type *var_name = vec_at_s(vec, (vec)->fe_idx); \
          var_name != NULL;                              \
-         var_name = ((++(vec)->fe_idx), vec_at_s(vec, (vec)->fe_idx)) ?: ((vec)->fe_idx = INVALID_FE_IDX, NULL))
+         var_name = ((++(vec)->fe_idx) && (var_name = vec_at_s(vec, (vec)->fe_idx))) ? var_name : ((vec)->fe_idx = INVALID_FE_IDX, NULL))
 
-Vec *vec_new(size_t capacity, size_t elem_size, void_cmp_func cmp, vec_growth_rate_func grow);
+Vec *vec_new(size_t capacity, size_t elem_size, void_cmp_func cmp, vec_growth_rate_func grow, void (*free_entry)(const void*));
 void vec_free(Vec *v);
 /* data must be a valid memory address, it will be copied into the array */
 void vec_push_back(Vec *v, void *data);

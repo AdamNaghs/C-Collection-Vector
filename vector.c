@@ -14,11 +14,11 @@
 #define ASSERT(cond) cond
 #endif
 
-#define EXIT_IF_NULL(value)                                                          \
-    if (value == NULL)                                                               \
-    {                                                                                \
+#define EXIT_IF_NULL(value)                                                                   \
+    if (value == NULL)                                                                        \
+    {                                                                                         \
         fprintf(stderr, "Given null vector on line %d in file \"%s\"\n", __LINE__, __FILE__); \
-        exit(1);                                                                     \
+        exit(1);                                                                              \
     }
 
 #define RET_IF_NULL(value, return_value)                                             \
@@ -35,7 +35,7 @@ static size_t default_growth_rate(Vec *v)
     return v->capacity * 2;
 }
 
-Vec *vec_new(size_t capacity, size_t elem_size, void_cmp_func cmp, vec_growth_rate_func grow)
+Vec *vec_new(size_t capacity, size_t elem_size, void_cmp_func cmp, vec_growth_rate_func grow, void (*free_entry)(const void *))
 {
     Vec *p = (Vec *)malloc(sizeof(Vec));
     ASSERT(p);
@@ -45,6 +45,7 @@ Vec *vec_new(size_t capacity, size_t elem_size, void_cmp_func cmp, vec_growth_ra
     p->data = NULL;
     p->cmp = cmp;
     p->grow = grow ? grow : default_growth_rate;
+    p->free_entry = free_entry ? free_entry : NULL;
     vec_resize(p, capacity);
     return p;
 }
@@ -52,6 +53,7 @@ Vec *vec_new(size_t capacity, size_t elem_size, void_cmp_func cmp, vec_growth_ra
 void vec_free(Vec *v)
 {
     VALIDATE_VECTOR(v);
+    vec_clear(v);
     free(v->data);
     free(v);
 }
@@ -132,9 +134,23 @@ void vec_insert(Vec *v, size_t index, void *data)
 void vec_clear(Vec *v)
 {
     VALIDATE_VECTOR(v);
+    if (v->free_entry)
+    {
+        V_FOR_EACH(v, void, var)
+        {
+            v->free_entry(var);
+        }
+    }
     memset(v->data, 0, v->capacity * v->elem_size * sizeof(byte));
     v->len = 0;
 }
+
+// void vec_clear(Vec *v)
+// {
+//     VALIDATE_VECTOR(v);
+//     memset(v->data, 0, v->capacity * v->elem_size * sizeof(byte));
+//     v->len = 0;
+// }
 
 void vec_clamp(Vec *v)
 {
