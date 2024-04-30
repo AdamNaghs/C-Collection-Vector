@@ -98,7 +98,12 @@ void *vec_pop_front(Vec *v);
 void *vec_find(Vec *v, void *_find);
 /* Returns heap allocated deep copy */
 Vec *vec_copy(Vec *v);
-
+/* returns the size of the vec */
 size_t vec_size(Vec *v);
+/* 
+    Adds all of the source vec to the dest vec if the elem_size's are equal.
+    Retunrs 0 on success, 1 on fail, and 2 on partial fail.
+*/
+int vec_add_all(Vec *dest, Vec *source);
 
 #endif /* VECTOR_H */

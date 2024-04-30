@@ -292,3 +292,17 @@ size_t vec_size(Vec *v)
 {
     return v->len;
 }
+
+int vec_add_all(Vec *dest, Vec *source)
+{
+    if (dest->elem_size != source->elem_size)
+        return 1;
+    for (size_t i = 0; i < source->capacity; i++)
+    {
+        void *data = vec_at_s(source, i);
+        if (!data)
+            return 2;
+        vec_push_back(dest, data);
+    }
+    return 0;
+}
