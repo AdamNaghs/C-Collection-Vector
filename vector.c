@@ -14,6 +14,13 @@
 #define ASSERT(cond) cond
 #endif
 
+#define PANIC(str)           \
+    do                       \
+    {                        \
+        printf("%s\n", str); \
+        exit(1);             \
+    } while (0)
+
 #define EXIT_IF_NULL(value)                                                                   \
     if (value == NULL)                                                                        \
     {                                                                                         \
@@ -35,7 +42,20 @@ static size_t default_growth_rate(Vec *v)
     return v->capacity * 2;
 }
 
-Vec *vec_new(size_t capacity, size_t elem_size, void_cmp_func cmp, vec_growth_rate_func grow, void (*free_entry)(const void *))
+static int default_cmp(const void *data0, const void *data1)
+{
+    /* compare the first byte */
+    if (!(data0 && data1))
+        return 0;
+    char d0 = *(char *)data0, d1 = *(char *)data1;
+    if (d0 == d1)
+        return 0;
+    if (d0 > d1)
+        return 1;
+    return -1;
+}
+
+Vec *vec_new0(size_t capacity, size_t elem_size, void_cmp_func cmp, vec_growth_rate_func grow, void (*free_entry)(const void *))
 {
     Vec *p = (Vec *)malloc(sizeof(Vec));
     ASSERT(p);
@@ -43,9 +63,24 @@ Vec *vec_new(size_t capacity, size_t elem_size, void_cmp_func cmp, vec_growth_ra
     p->capacity = 0;
     p->elem_size = elem_size;
     p->data = NULL;
-    p->cmp = cmp;
+    p->cmp = cmp ? cmp : default_cmp;
     p->grow = grow ? grow : default_growth_rate;
     p->free_entry = free_entry ? free_entry : NULL;
+    vec_resize(p, capacity);
+    return p;
+}
+
+Vec *vec_new(size_t capacity, size_t elem_size, void_cmp_func cmp, vec_growth_rate_func grow, void (*free_entry)(const void *))
+{
+    Vec *p = malloc(sizeof(Vec));
+    ASSERT(p);
+    *p = (Vec){.elem_size = elem_size,
+               .capacity = 0,
+               .len = 0,
+               .data = NULL,
+               .cmp = cmp ? cmp : NULL,
+               .grow = grow ? grow : default_growth_rate,
+               .free_entry = free_entry ? free_entry : NULL};
     vec_resize(p, capacity);
     return p;
 }
@@ -293,7 +328,7 @@ size_t vec_size(Vec *v)
     return v->len;
 }
 
-int vec_add_all(Vec *dest, Vec *source)
+int vec_append(Vec *dest, Vec *source)
 {
     if (dest->elem_size != source->elem_size)
         return 1;

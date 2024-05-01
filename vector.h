@@ -5,7 +5,7 @@
 
 /*
     INFO:
-        The Vector is an array of bytes. 
+        The Vector is an array of bytes.
         When adding a new member to the vector you must provide a valid memory address to copy the data from.
         The vector will then contain a copy of the data at that index.
         If the vector contains pointers to memory, you need to be careful to free memory before you remove the entry from the array.
@@ -41,7 +41,7 @@ struct Vec
     size_t elem_size; // elem_size * capacity is the current memory allocation in bytes
     void_cmp_func cmp;
     vec_growth_rate_func grow;
-    void (*free_entry)(const void*);
+    void (*free_entry)(const void *);
     size_t fe_idx; // use by VEC_FOR_EACH to ensure index after altering the vector
 };
 
@@ -65,9 +65,9 @@ struct Vec
     (vec)->fe_idx = 0;                                  \
     for (type *var_name = vec_at_s(vec, (vec)->fe_idx); \
          var_name != NULL;                              \
-         var_name = vec_at_s(vec,++((vec)->fe_idx)))
+         var_name = vec_at_s(vec, ++((vec)->fe_idx)))
 
-Vec *vec_new(size_t capacity, size_t elem_size, void_cmp_func cmp, vec_growth_rate_func grow, void (*free_entry)(const void*));
+Vec *vec_new(size_t capacity, size_t elem_size, void_cmp_func cmp, vec_growth_rate_func grow, void (*free_entry)(const void *));
 void vec_free(Vec *v);
 /* data must be a valid memory address, it will be copied into the array */
 void vec_push_back(Vec *v, void *data);
@@ -100,10 +100,10 @@ void *vec_find(Vec *v, void *_find);
 Vec *vec_copy(Vec *v);
 /* returns the size of the vec */
 size_t vec_size(Vec *v);
-/* 
+/*
     Adds all of the source vec to the dest vec if the elem_size's are equal.
     Retunrs 0 on success, 1 on fail, and 2 on partial fail.
 */
-int vec_add_all(Vec *dest, Vec *source);
+int vec_append(Vec *dest, Vec *source);
 
 #endif /* VECTOR_H */
