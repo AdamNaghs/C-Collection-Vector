@@ -43,7 +43,6 @@ struct Vec
     vec_growth_rate_func grow;
     void (*free_entry)(const void *);
     size_t fe_idx;    /* use by VEC_FOR_EACH to ensure index after altering the vector */
-    void *itr;
 };
 
 #define VEC(type) (vec_new(VECTOR_DEFAULT_CAP, sizeof(type), NULL, NULL, NULL))
