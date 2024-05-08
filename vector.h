@@ -21,7 +21,7 @@
 
 #define VECTOR_DEFAULT_CAP 10
 
-#define INVALID_FE_IDX ((size_t)-1)
+#define INVALID_FE_IDX ((size_t) - 1)
 
 typedef uint8_t byte;
 
@@ -36,13 +36,14 @@ typedef size_t (*vec_growth_rate_func)(Vec *);
 struct Vec
 {
     byte *data;
-    size_t len;       // current number of entries
-    size_t capacity;  // max number of entries
-    size_t elem_size; // elem_size * capacity is the current memory allocation in bytes
+    size_t len;       /* current number of entries */
+    size_t capacity;  /* max number of entries */
+    size_t elem_size; /* elem_size * capacity is the current memory allocation in bytes */
     void_cmp_func cmp;
     vec_growth_rate_func grow;
     void (*free_entry)(const void *);
-    size_t fe_idx; // use by VEC_FOR_EACH to ensure index after altering the vector
+    size_t fe_idx;    /* use by VEC_FOR_EACH to ensure index after altering the vector */
+    void *itr;
 };
 
 #define VEC(type) (vec_new(VECTOR_DEFAULT_CAP, sizeof(type), NULL, NULL, NULL))
@@ -58,6 +59,7 @@ struct Vec
 #define V_CLEAR(v) (vec_clear(v))
 #define V_REV(v) (vec_reverse(v))
 
+#ifndef __STDC__
 /* Accommodates adding and removing entries but not inserting before the current index.
     You can still insert before the current index, but it will make you iterate over the current entry again
     and you will not be able to iterate over the entry you inserted before the current index. */
@@ -65,6 +67,13 @@ struct Vec
     (vec)->fe_idx = 0;                                  \
     for (type *var_name = vec_at_s(vec, (vec)->fe_idx); \
          var_name != NULL;                              \
+         var_name = vec_at_s(vec, ++((vec)->fe_idx)))
+#endif
+/* Same as V_FOR_EACH, but expects the user to allocate the var_name as a pointer to type */
+#define V_FOR_EACH_ANSI(vec, var_name)            \
+    (vec)->fe_idx = 0;                            \
+    for (var_name = vec_at_s(vec, (vec)->fe_idx); \
+         var_name != NULL;                        \
          var_name = vec_at_s(vec, ++((vec)->fe_idx)))
 
 Vec *vec_new(size_t capacity, size_t elem_size, void_cmp_func cmp, vec_growth_rate_func grow, void (*free_entry)(const void *));
@@ -89,7 +98,6 @@ void vec_swap(Vec *v, size_t idx0, size_t idx1);
 void *vec_at(Vec *v, size_t index);
 /* safer */
 void *vec_at_s(Vec *v, size_t index);
-// "returns" a ptr of type 't' at 'index' from 'v'
 /* NULL on fail, ptr to element on success */
 void *vec_pop_back(Vec *v);
 /* NULL on fail, ptr to element on success */
@@ -105,5 +113,7 @@ size_t vec_size(Vec *v);
     Retunrs 0 on success, 1 on fail, and 2 on partial fail.
 */
 int vec_append(Vec *dest, Vec *source);
+/* gets raw array copy, must be freed by user with 'free' */
+void *vec_arr_copy(Vec *v, size_t *ret_elem_count);
 
 #endif /* VECTOR_H */

@@ -72,6 +72,11 @@ Vec *vec_new0(size_t capacity, size_t elem_size, void_cmp_func cmp, vec_growth_r
 
 Vec *vec_new(size_t capacity, size_t elem_size, void_cmp_func cmp, vec_growth_rate_func grow, void (*free_entry)(const void *))
 {
+    if (!elem_size)
+    {
+        perror("vec_new recieve 'elem_size' of 0 which is invalid.\n");
+        exit(1);
+    }
     Vec *p = malloc(sizeof(Vec));
     ASSERT(p);
     *p = (Vec){.elem_size = elem_size,
@@ -80,7 +85,7 @@ Vec *vec_new(size_t capacity, size_t elem_size, void_cmp_func cmp, vec_growth_ra
                .data = NULL,
                .cmp = cmp ? cmp : NULL,
                .grow = grow ? grow : default_growth_rate,
-               .free_entry = free_entry ? free_entry : NULL};
+               .free_entry = free_entry ? free_entry : NULL,};
     vec_resize(p, capacity);
     return p;
 }
@@ -118,7 +123,7 @@ void vec_resize(Vec *v, size_t new_cap)
     byte *new_data = (byte *)realloc(v->data, new_cap * v->elem_size * sizeof(byte));
     ASSERT(new_data != NULL && "vec_resize: Failed to resize vec array.");
 
-    // Initialize the newly allocated memory
+    /*  Initialize the newly allocated memory */
     size_t old_cap_start = v->capacity * v->elem_size * sizeof(byte);
     if (old_cap_start < new_cap)
     {
@@ -171,7 +176,8 @@ void vec_clear(Vec *v)
     VALIDATE_VECTOR(v);
     if (v->free_entry)
     {
-        V_FOR_EACH(v, void, var)
+        void *var;
+        V_FOR_EACH_ANSI(v, var)
         {
             v->free_entry(var);
         }
@@ -180,12 +186,12 @@ void vec_clear(Vec *v)
     v->len = 0;
 }
 
-// void vec_clear(Vec *v)
-// {
-//     VALIDATE_VECTOR(v);
-//     memset(v->data, 0, v->capacity * v->elem_size * sizeof(byte));
-//     v->len = 0;
-// }
+/*  void vec_clear(Vec *v) */
+/*  { */
+/*      VALIDATE_VECTOR(v); */
+/*      memset(v->data, 0, v->capacity * v->elem_size * sizeof(byte)); */
+/*      v->len = 0; */
+/*  } */
 
 void vec_clamp(Vec *v)
 {
@@ -216,7 +222,8 @@ void *vec_find(Vec *v, void *_find)
         perror("vec_find: Compare function is undefined.");
         return NULL;
     }
-    for (size_t i = 0; i < v->len; i++)
+    size_t i;
+    for (i = 0; i < v->len; i++)
     {
         if (v->cmp(vec_at(v, i), _find) == 0)
         {
@@ -248,7 +255,7 @@ void vec_remove_fast(Vec *v, size_t index)
     VALIDATE_VECTOR(v);
     if (index >= v->len)
         return;
-    if (v->fe_idx != INVALID_FE_IDX) // allows V_FOR_EACH to remove entries
+    if (v->fe_idx != INVALID_FE_IDX) /* allows V_FOR_EACH to remove entries */ 
     {
         v->fe_idx--;
     }
@@ -332,7 +339,8 @@ int vec_append(Vec *dest, Vec *source)
 {
     if (dest->elem_size != source->elem_size)
         return 1;
-    for (size_t i = 0; i < source->capacity; i++)
+    size_t i;
+    for (i = 0; i < source->capacity; i++)
     {
         void *data = vec_at_s(source, i);
         if (!data)
@@ -340,4 +348,12 @@ int vec_append(Vec *dest, Vec *source)
         vec_push_back(dest, data);
     }
     return 0;
+}
+
+void *vec_arr_copy(Vec *v, size_t *ret_elem_count)
+{
+    if (!(ret_elem_count && v))
+        return NULL;
+    void *copy = malloc(v->elem_size * v->len);
+    return memcpy(copy, v->data, v->len * v->elem_size);
 }
