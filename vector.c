@@ -11,7 +11,7 @@
         exit(1);                                                                                    \
     }
 #else
-#define ASSERT(cond) cond
+#define ASSERT(cond) ((void)0)
 #endif
 
 #define PANIC(str)           \
@@ -55,28 +55,9 @@ static int default_cmp(const void *data0, const void *data1)
     return -1;
 }
 
-Vec *vec_new0(size_t capacity, size_t elem_size, void_cmp_func cmp, vec_growth_rate_func grow, void (*free_entry)(const void *))
-{
-    Vec *p = (Vec *)malloc(sizeof(Vec));
-    ASSERT(p);
-    p->len = 0;
-    p->capacity = 0;
-    p->elem_size = elem_size;
-    p->data = NULL;
-    p->cmp = cmp ? cmp : default_cmp;
-    p->grow = grow ? grow : default_growth_rate;
-    p->free_entry = free_entry ? free_entry : NULL;
-    vec_resize(p, capacity);
-    return p;
-}
-
 Vec *vec_new(size_t capacity, size_t elem_size, void_cmp_func cmp, vec_growth_rate_func grow, void (*free_entry)(const void *))
 {
-    if (!elem_size)
-    {
-        perror("vec_new recieve 'elem_size' of 0 which is invalid.\n");
-        exit(1);
-    }
+    ASSERT(elem_size != 0);
     Vec *p = malloc(sizeof(Vec));
     ASSERT(p);
     *p = (Vec){.elem_size = elem_size,

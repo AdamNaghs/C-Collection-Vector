@@ -15,13 +15,14 @@
         and rewrite it to return errors.
 *       Don't just change these files because I link directly to to these files in some projects.
 */
+
 /*
     Define DISABLE_ASSERT to not use asserts.
 */
 
 #define VECTOR_DEFAULT_CAP 10
 
-#define INVALID_FE_IDX ((size_t) - 1)
+#define INVALID_FE_IDX ((size_t) -1)
 
 typedef uint8_t byte;
 
