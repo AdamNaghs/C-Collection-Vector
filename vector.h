@@ -1,3 +1,16 @@
+/**
+ * @file vector.h
+ * @author Adam Naghavi 
+ * @brief 
+ * @version 0.1
+ * @date 2024-06-03
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ * @warning This is always a work in progress. Don't forget to link the vector.c file to your project.
+ * 
+ */
+
 #ifndef VECTOR_H_
 #define VECTOR_H_
 
@@ -144,10 +157,12 @@ void vec_push_back(Vec *v, void *data);
 void vec_remove(Vec *v, size_t index);
 
 /**
- * @brief doesn't ensure the vec order
+ * @brief Doesn't ensure the vec order.
  * 
- * @param v 
- * @param index 
+ * @param v Vector to remove data from.
+ * @param index Index of the data to remove.
+ * 
+ * @details Swaps the last element with the element at the specified index.
  */
 void vec_remove_fast(Vec *v, size_t index);
 
