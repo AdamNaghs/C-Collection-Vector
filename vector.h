@@ -18,26 +18,19 @@
 */
 
 /*
-    Define DISABLE_ASSERT to not use asserts.
+    Define VEC_DISABLE_ASSERT to not use asserts.
 */
 
-#ifndef DISABLE_ASSERT
-#define ASSERT(cond)                                                                                \
+#ifndef VEC_DISABLE_ASSERT
+#define VEC_ASSERT(cond)                                                                                \
     if (!(cond))                                                                                    \
     {                                                                                               \
         printf("Assertion Failed:\n\tLine: %d\n\tFile: %s\n\t\"%s\"\n", __LINE__, __FILE__, #cond); \
         exit(1);                                                                                    \
     }
 #else
-#define ASSERT(cond) ((void)0)
+#define VEC_ASSERT(cond) ((void)0)
 #endif
-
-#define PANIC(str)           \
-    do                       \
-    {                        \
-        printf("%s\n", str); \
-        exit(1);             \
-    } while (0)
 
 #define EXIT_IF_NULL(value)                                                                   \
     if (value == NULL)                                                                        \
@@ -46,12 +39,6 @@
         exit(1);                                                                              \
     }
 
-#define RET_IF_NULL(value, return_value)                                             \
-    if (value == NULL)                                                               \
-    {                                                                                \
-        fprintf(stderr, "Given null on line %d in file \"%s\"", __LINE__, __FILE__); \
-        return return_value;                                                         \
-    }
 
 #define VALIDATE_VECTOR(vec) EXIT_IF_NULL(vec)
 
