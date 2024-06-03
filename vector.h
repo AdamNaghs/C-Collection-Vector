@@ -92,6 +92,10 @@ struct Vec
     size_t fe_idx;    /* use by VEC_FOR_EACH to ensure index after altering the vector */
 };
 
+/**
+ * @brief Quick macro to create a new vector.
+ * 
+ */
 #define VEC(type) (vec_new(VECTOR_DEFAULT_CAP, sizeof(type), NULL, NULL, NULL))
 #define V_ADD(v, data) (vec_push_back(v, data))
 #define V_INS(v, idx, data) (vec_insert(v, idx, data))
