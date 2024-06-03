@@ -1,4 +1,4 @@
-#include "vector.h"
+#include "vector copy.h"
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -55,34 +55,19 @@ static int default_cmp(const void *data0, const void *data1)
     return -1;
 }
 
-Vec *vec_new0(size_t capacity, size_t elem_size, void_cmp_func cmp, vec_growth_rate_func grow, void (*free_entry)(const void *))
+Vec_Error vec_new(Vec* ret, size_t capacity, size_t elem_size, void_cmp_func cmp, vec_growth_rate_func grow, void (*free_entry)(const void *))
 {
-    Vec *p = (Vec *)malloc(sizeof(Vec));
-    ASSERT(p);
-    p->len = 0;
-    p->capacity = 0;
-    p->elem_size = elem_size;
-    p->data = NULL;
-    p->cmp = cmp ? cmp : default_cmp;
-    p->grow = grow ? grow : default_growth_rate;
-    p->free_entry = free_entry ? free_entry : NULL;
-    vec_resize(p, capacity);
-    return p;
-}
-
-Vec *vec_new(size_t capacity, size_t elem_size, void_cmp_func cmp, vec_growth_rate_func grow, void (*free_entry)(const void *))
-{
-    Vec *p = malloc(sizeof(Vec));
-    ASSERT(p);
-    *p = (Vec){.elem_size = elem_size,
+    //Vec *p = malloc(sizeof(Vec));
+    VEC_ASSERT(ret);
+    *ret = (Vec){.elem_size = elem_size,
                .capacity = 0,
                .len = 0,
                .data = NULL,
                .cmp = cmp ? cmp : NULL,
                .grow = grow ? grow : default_growth_rate,
                .free_entry = free_entry ? free_entry : NULL};
-    vec_resize(p, capacity);
-    return p;
+    vec_resize(ret, capacity);
+    return NONE;
 }
 
 void vec_free(Vec *v)
@@ -90,7 +75,7 @@ void vec_free(Vec *v)
     VALIDATE_VECTOR(v);
     vec_clear(v);
     free(v->data);
-    free(v);
+    /*free(v);*/
 }
 
 void *vec_at(Vec *v, size_t index)
@@ -116,7 +101,7 @@ void vec_resize(Vec *v, size_t new_cap)
     if (!new_cap)
         new_cap++;
     byte *new_data = (byte *)realloc(v->data, new_cap * v->elem_size * sizeof(byte));
-    ASSERT(new_data != NULL && "vec_resize: Failed to resize vec array.");
+    VEC_ASSERT(new_data != NULL && "vec_resize: Failed to resize vec array.");
 
     // Initialize the newly allocated memory
     size_t old_cap_start = v->capacity * v->elem_size * sizeof(byte);
@@ -195,7 +180,7 @@ void vec_clamp(Vec *v)
         tmp = (byte *)realloc(v->data, v->elem_size * sizeof(byte));
     else
         tmp = (byte *)realloc(v->data, v->len * v->elem_size * sizeof(byte));
-    ASSERT(tmp);
+    VEC_ASSERT(tmp);
     v->data = tmp;
     v->capacity = v->len;
 }
@@ -261,7 +246,7 @@ Vec *vec_copy(Vec *v)
 {
     VALIDATE_VECTOR(v);
     Vec *ret = (Vec *)malloc(sizeof(Vec));
-    ASSERT(ret);
+    VEC_ASSERT(ret);
     ret->grow = v->grow;
     ret->cmp = v->cmp;
     ret->elem_size = v->elem_size;
@@ -273,7 +258,7 @@ Vec *vec_copy(Vec *v)
     {
         return ret;
     }
-    ASSERT(ret->data && ret->capacity == v->capacity);
+    VEC_ASSERT(ret->data && ret->capacity == v->capacity);
     memcpy(ret->data, v->data, v->capacity);
     return ret;
 }
