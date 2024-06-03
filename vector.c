@@ -42,12 +42,64 @@ static size_t default_growth_rate(Vec *v)
     return v->capacity * 2;
 }
 
-static int default_cmp(const void *data0, const void *data1)
+int vec_char_cmp(const void *data0, const void *data1)
 {
     /* compare the first byte */
     if (!(data0 && data1))
         return 0;
     char d0 = *(char *)data0, d1 = *(char *)data1;
+    if (d0 == d1)
+        return 0;
+    if (d0 > d1)
+        return 1;
+    return -1;
+}
+
+int vec_int_cmp(const void *data0, const void *data1)
+{
+    /* compare the first byte */
+    if (!(data0 && data1))
+        return 0;
+    int d0 = *(int *)data0, d1 = *(int *)data1;
+    if (d0 == d1)
+        return 0;
+    if (d0 > d1)
+        return 1;
+    return -1;
+}
+
+int vec_uint_cmp(const void *data0, const void *data1)
+{
+    /* compare the first byte */
+    if (!(data0 && data1))
+        return 0;
+    unsigned int d0 = *(unsigned int *)data0, d1 = *(unsigned int *)data1;
+    if (d0 == d1)
+        return 0;
+    if (d0 > d1)
+        return 1;
+    return -1;
+}
+
+int vec_ll_cmp(const void *data0, const void *data1)
+{
+    /* compare the first byte */
+    if (!(data0 && data1))
+        return 0;
+    long long d0 = *(long long *)data0, d1 = *(long long *)data1;
+    if (d0 == d1)
+        return 0;
+    if (d0 > d1)
+        return 1;
+    return -1;
+}
+
+int vec_ull_cmp(const void *data0, const void *data1)
+{
+    /* compare the first byte */
+    if (!(data0 && data1))
+        return 0;
+    unsigned long long d0 = *(unsigned long long *)data0, d1 = *(unsigned long long *)data1;
     if (d0 == d1)
         return 0;
     if (d0 > d1)
