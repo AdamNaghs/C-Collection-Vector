@@ -61,32 +61,52 @@ void test1(void)
         value = i;
         V_ADD(int_vec, &value);
         printf("Test1. %d\n", *V_AT(int_vec, i, int));
-        printf("%zu, %zu\n", int_vec->len, int_vec->capacity);
+        printf("\t%zu, %zu\n", int_vec->len, int_vec->capacity);
     }
     for (i = 0; i < 101; i++)
     {
         V_RM(int_vec, 0);
         printf("Test2. %d\n", *V_AT(int_vec, 0, int));
-        printf("%zu, %zu\n", int_vec->len, int_vec->capacity);
+        printf("\t%zu, %zu\n", int_vec->len, int_vec->capacity);
     }
     for (i = 0; i < 101; i++)
     {
         vec_insert(int_vec, 0, &i);
         printf("Test3. %d\n", *V_AT(int_vec, 0, int));
-        printf("%zu, %zu\n", int_vec->len, int_vec->capacity);
+        printf("\t%zu, %zu\n", int_vec->len, int_vec->capacity);
     }
     while (int_vec->len)
     {
         printf("Test4. %d\n", *V_AT(int_vec, 0, int));
-        printf("%zu, %zu\n", int_vec->len, int_vec->capacity);
+        printf("\t%zu, %zu\n", int_vec->len, int_vec->capacity);
         V_RMF(int_vec, 0);
     }
     vec_free(int_vec);
+}
+
+void test3(void)
+{
+    Vec *int_vec = VEC(int);
+    int value, i;
+    printf("Test3\n");
+    for (i = 0; i < 11; i++)
+    {
+        value = i;
+        V_ADD(int_vec, &value);
+        printf("\tidx:%zu, cap:%zu\n", *(int*)vec_at(int_vec,i), int_vec->capacity);
+    }
+    V_REV(int_vec);
+    printf("Reversed\n");
+    for (i = 0; i < 11; i++)
+    {
+        printf("\tidx:%zu, cap:%zu\n", *(int*)vec_at(int_vec,i), int_vec->capacity);
+    }
 }
 
 int main()
 {
     test1();
     test2();
+    test3();
     return 0;
 }
