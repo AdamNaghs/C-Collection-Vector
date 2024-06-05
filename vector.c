@@ -289,14 +289,10 @@ Vec *vec_copy(Vec *v)
 void vec_reverse(Vec *v)
 {
     VALIDATE_VECTOR(v);
-    byte *start = v->data;
-    byte *end = start + v->capacity - 1;
-
-    while (start < end)
+    size_t i;
+    for (i = 0; i < v->len / 2; i++)
     {
-        byte temp = *start;
-        *start++ = *end;
-        *end-- = temp;
+        vec_swap(v, i, v->len - i - 1);
     }
 }
 
