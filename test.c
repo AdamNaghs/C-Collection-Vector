@@ -101,6 +101,7 @@ void test3(void)
     {
         printf("\tidx:%zu, cap:%zu\n", *(int*)vec_at(int_vec,i), int_vec->capacity);
     }
+    vec_free(int_vec);
 }
 
 int main()
