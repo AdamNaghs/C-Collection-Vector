@@ -86,6 +86,8 @@ extern "C"
      */
     typedef size_t (*vec_growth_rate_func)(Vec *);
 
+    void vec_deref_free(const void *data);
+
     struct Vec
     {
         byte *data;
@@ -119,7 +121,7 @@ extern "C"
 #define V_CLEAR(v) (vec_clear(v))
 #define V_REV(v) (vec_reverse(v))
 
-#ifndef __STDC__
+#if __STDC_VERSION__ >= 199901L /* If declarations in for loops are supported */
 /* Accommodates adding and removing entries but not inserting before the current index.
     You can still insert before the current index, but it will make you iterate over the current entry again
     and you will not be able to iterate over the entry you inserted before the current index. */
@@ -129,7 +131,10 @@ extern "C"
          var_name != NULL;                              \
          var_name = vec_at_s(vec, ++((vec)->fe_idx)))
 #endif
-/* Same as V_FOR_EACH, but expects the user to allocate the var_name as a pointer to type */
+/* Same as V_FOR_EACH, but expects the user to allocate the var_name as a pointer to type.
+    Accommodates adding and removing entries but not inserting before the current index.
+    You can still insert before the current index, but it will make you iterate over the current entry again
+    and you will not be able to iterate over the entry you inserted before the current index.*/
 #define V_FOR_EACH_ANSI(vec, var_name)            \
     (vec)->fe_idx = 0;                            \
     for (var_name = vec_at_s(vec, (vec)->fe_idx); \
@@ -153,6 +158,7 @@ extern "C"
      * @param v Vector to free
      */
     void vec_free(Vec *v);
+
     /**
      * @brief Data must be a valid memory address, it will be copied into the vector.
      *
@@ -260,18 +266,30 @@ extern "C"
      * @details Checks if the index is out of bounds.
      */
     void *vec_at_s(Vec *v, size_t index);
+
     /**
      * @brief Removes the last element from the vector.
      *
      * @param v Vector to remove the element from.
      * @return void* Pointer to the element. NULL on fail.
+     * @details Ex: If the elememt is an int, the return value will be a pointer to an int.
+     * If the element is a struct, the return value will be a pointer to the struct.
+     * If the element is a pointer, the return value will be a pointer to a pointer.
+     * 
+     * @warning User must free the returned pointer with free and must run any destructors on the data that are expected.
      */
     void *vec_pop_back(Vec *v);
-    /* NULL on fail, ptr to element on success */
+
     /**
      *
      * @param v Vector to remove the element from.
      * @return void* Pointer to the first element. NULL on fail.
+     * 
+     * @details Ex: If the elememt is an int, the return value will be a pointer to an int.
+     * If the element is a struct, the return value will be a pointer to the struct.
+     * If the element is a pointer, the return value will be a pointer to a pointer.
+     * 
+     * @warning User must free the returned pointer with free and must run any destructors on the data that are expected.
      */
     void *vec_pop_front(Vec *v);
 
@@ -285,6 +303,7 @@ extern "C"
      * @warning Expects a cmp function to be assigned to the vector.
      */
     void *vec_find(Vec *v, void *_find);
+
     /**
      * @brief Returns a heap allocated deep copy of the vector.
      *
@@ -292,6 +311,7 @@ extern "C"
      * @return Vec* Pointer to the new vector.
      */
     Vec *vec_copy(Vec *v);
+
     /**
      * @brief Returns the size of the vector.
      *
@@ -301,6 +321,7 @@ extern "C"
      * @details returns v->len
      */
     size_t vec_size(Vec *v);
+
     /**
      * @brief Adds all of the source vector to the destination vector.
      *
@@ -314,7 +335,7 @@ extern "C"
      * @brief Returns a heap allocated deep copy of the vector.
      *
      * @param v Vector to copy.
-     * @param ret_elem_count Pointer to the size of the vector.
+     * @param ret_elem_count Pointer to the size of the vector. Can be NULL if you are not interested in the size.
      * @return void* Pointer to the new vector. Must be freed using "free".
      *
      * @warning User must free the returned pointer.

@@ -1,4 +1,5 @@
 #include "vector.h"
+#include "../Testing/testing.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -15,7 +16,7 @@ struct test_data new_data(size_t index)
     return ret;
 }
 
-void test2(void)
+TEST_MAKE(Struct_Vec)
 {
     Vec *td_vec = VEC(struct test_data);
     int i;
@@ -26,88 +27,89 @@ void test2(void)
         if (i == 0)
             continue;
         struct test_data *ptr = vec_at(td_vec, i - 1);
-        printf("Test1 - %d. %s - %zu\n", i, ptr->name, ptr->index);
-        printf("%zu, %zu\n", td_vec->len, td_vec->capacity);
+        TEST_ASSERT_CLEAN(ptr->index == i - 1, vec_free(td_vec));
+        TEST_ASSERT_CLEAN(strcmp(ptr->name, new_data(i - 1).name) == 0, vec_free(td_vec));
+        TEST_ASSERT_CLEAN_MSG(td_vec->len == (i + 1), vec_free(td_vec), "len: %zu, i: %d", td_vec->len, i);
     }
-    int c = 0;
-    i = 0;
-    struct test_data *entry;
-    V_FOR_EACH_ANSI(td_vec, entry)
-    {
-        if (td_vec->fe_idx >= 100)
-        {
-            i++;
-            if (i >= 20)
-                break;
-        }
-        printf("idx: %d\n", td_vec->fe_idx);
-        printf("Real idx: %d\n",c);
-        printf("Vec Size: %llu\n", td_vec->len);
-        printf("Name: %s, Idx: %llu\n", entry->name, entry->index);
-        vec_remove(td_vec, td_vec->fe_idx);
-        c++;
-    }
-    
-    printf("%llu\n", td_vec->fe_idx);
     vec_free(td_vec);
+    TEST_PASS();
 }
 
-void test1(void)
+TEST_MAKE(Insert_Vec)
 {
     Vec *int_vec = VEC(int);
     int value, i;
-    for (i = 0; i < 101; i++)
-    {
-        value = i;
-        V_ADD(int_vec, &value);
-        printf("Test1. %d\n", *V_AT(int_vec, i, int));
-        printf("\t%zu, %zu\n", int_vec->len, int_vec->capacity);
-    }
-    for (i = 0; i < 101; i++)
-    {
-        V_RM(int_vec, 0);
-        printf("Test2. %d\n", *V_AT(int_vec, 0, int));
-        printf("\t%zu, %zu\n", int_vec->len, int_vec->capacity);
-    }
-    for (i = 0; i < 101; i++)
-    {
-        vec_insert(int_vec, 0, &i);
-        printf("Test3. %d\n", *V_AT(int_vec, 0, int));
-        printf("\t%zu, %zu\n", int_vec->len, int_vec->capacity);
-    }
-    while (int_vec->len)
-    {
-        printf("Test4. %d\n", *V_AT(int_vec, 0, int));
-        printf("\t%zu, %zu\n", int_vec->len, int_vec->capacity);
-        V_RMF(int_vec, 0);
-    }
-    vec_free(int_vec);
-}
-
-void test3(void)
-{
-    Vec *int_vec = VEC(int);
-    int value, i;
-    printf("Test3\n");
     for (i = 0; i < 11; i++)
     {
         value = i;
         V_ADD(int_vec, &value);
-        printf("\tidx:%zu, cap:%zu\n", *(int*)vec_at(int_vec,i), int_vec->capacity);
+        TEST_ASSERT_CLEAN(*(int*)vec_at(int_vec,i) == i, vec_free(int_vec));
+    }
+    int insert_val = 100;
+    V_INS(int_vec, 5, &insert_val);
+    for (i = 0; i < 11; i++)
+    {
+        if (i < 5)
+            TEST_ASSERT_CLEAN(*(int*)vec_at(int_vec,i) == i, vec_free(int_vec));
+        else if (i == 5)
+            TEST_ASSERT_CLEAN(*(int*)vec_at(int_vec,i) == 100, vec_free(int_vec));
+        else
+            TEST_ASSERT_CLEAN(*(int*)vec_at(int_vec,i) == i - 1, vec_free(int_vec));
+    }
+    vec_free(int_vec);
+}
+
+
+TEST_MAKE(Str_Vec)
+{
+    Vec* str_vec = VEC(char*);
+    str_vec->free_entry = vec_deref_free;
+    int i;
+    for (i = 0; i < 101; i++)
+    {
+        char* str = malloc(100);
+        snprintf(str, 100, "index%d", i);
+        V_ADD(str_vec, &str);
+        if (i == 0)
+            continue;
+        char** ptr = vec_at(str_vec, i);
+        TEST_ASSERT_CLEAN(strcmp(*ptr, str) == 0, vec_free(str_vec));
+        TEST_ASSERT_CLEAN(str_vec->len == i + 1, vec_free(str_vec));
+        TEST_ASSERT_CLEAN(str_vec->capacity >= i + 1, vec_free(str_vec));
+    }
+    vec_free(str_vec);
+    TEST_PASS();
+}
+
+TEST_MAKE(Rev_Vec)
+{
+    Vec* int_vec = VEC(int);
+    int value, i;
+    for (i = 0; i < 11; i++)
+    {
+        value = i;
+        V_ADD(int_vec, &value);
     }
     V_REV(int_vec);
-    printf("Reversed\n");
     for (i = 0; i < 11; i++)
     {
-        printf("\tidx:%zu, cap:%zu\n", *(int*)vec_at(int_vec,i), int_vec->capacity);
+        TEST_ASSERT_CLEAN(*(int*)vec_at(int_vec,i) == 10 - i, vec_free(int_vec));
     }
     vec_free(int_vec);
+    TEST_PASS();
+}
+
+TEST_SUITE_MAKE(Vec)
+{
+    TEST_SUITE_LINK(Vec, Struct_Vec);
+    TEST_SUITE_LINK(Vec, Insert_Vec);
+    TEST_SUITE_LINK(Vec, Str_Vec);
+    TEST_SUITE_LINK(Vec, Rev_Vec);
+    TEST_SUITE_END(Vec);
 }
 
 int main()
 {
-    test1();
-    test2();
-    test3();
+    TEST_SUITE_RUN(Vec);
     return 0;
 }

@@ -3,7 +3,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-
+void vec_deref_free(const void *data)
+{
+    free(*(void **)data);
+}
 
 static size_t default_growth_rate(Vec *v)
 {
@@ -349,8 +352,10 @@ int vec_append(Vec *dest, Vec *source)
 
 void *vec_arr_copy(Vec *v, size_t *ret_elem_count)
 {
-    if (!(ret_elem_count && v))
+    if (!(v))
         return NULL;
     void *copy = malloc(v->elem_size * v->len);
+    if (ret_elem_count)
+        *ret_elem_count = v->len;
     return memcpy(copy, v->data, v->len * v->elem_size);
 }
