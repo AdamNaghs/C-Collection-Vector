@@ -237,6 +237,25 @@ void *vec_find(Vec *v, void *_find)
     return NULL;
 }
 
+size_t vec_find_idx(Vec* v, void* _find)
+{
+    VALIDATE_VECTOR(v);
+    if (!v->cmp)
+    {
+        perror("vec_find_idx: Compare function is undefined.");
+        return INVALID_FE_IDX;
+    }
+    size_t i;
+    for (i = 0; i < v->len; i++)
+    {
+        if (v->cmp(vec_at(v, i), _find) == 0)
+        {
+            return i;
+        }
+    }
+    return INVALID_FE_IDX;
+}
+
 void vec_remove(Vec *v, size_t index)
 {
     VALIDATE_VECTOR(v);

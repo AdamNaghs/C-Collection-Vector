@@ -305,6 +305,17 @@ extern "C"
     void *vec_find(Vec *v, void *_find);
 
     /**
+     * @brief Finds the index of the first element that matches the data.
+     * 
+     * @param v Vector to search.
+     * @param _find Pointer to a value to find.
+     * @return size_t, INVALID_FE_IDX on fail.
+     * 
+     * @warning Expects a cmp function to be assigned to the vector.
+     */
+    size_t vec_find_idx(Vec* v, void* _find);
+
+    /**
      * @brief Returns a heap allocated deep copy of the vector.
      *
      * @param v Vector to copy.
