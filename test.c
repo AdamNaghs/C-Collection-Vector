@@ -1,5 +1,6 @@
 #include "vector.h"
-#include "../Testing/testing.h"
+#define CTF_TEST_NAMES
+#include "../Testing/ctf.h"
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -29,7 +30,7 @@ TEST_MAKE(Struct_Vec)
         struct test_data *ptr = vec_at(td_vec, i - 1);
         TEST_ASSERT_CLEAN(ptr->index == i - 1, vec_free(td_vec));
         TEST_ASSERT_CLEAN(strcmp(ptr->name, new_data(i - 1).name) == 0, vec_free(td_vec));
-        TEST_ASSERT_CLEAN_MSG(td_vec->len == (i + 1), vec_free(td_vec), "len: %zu, i: %d", td_vec->len, i);
+        TEST_ASSERT_CLEAN_LOG(td_vec->len == (i + 1), TEST_BLOCK(vec_free(td_vec)), "len: %zu, i: %d", td_vec->len, i);
     }
     vec_free(td_vec);
     TEST_PASS();
@@ -101,6 +102,7 @@ TEST_MAKE(Rev_Vec)
 
 TEST_SUITE_MAKE(Vec)
 {
+    TEST_SUITE_INIT(Vec);
     TEST_SUITE_LINK(Vec, Struct_Vec);
     TEST_SUITE_LINK(Vec, Insert_Vec);
     TEST_SUITE_LINK(Vec, Str_Vec);
